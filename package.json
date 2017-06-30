@@ -18,11 +18,15 @@
   "private": true,
   "dependencies": {
     "axios": "^0.16.2",
+    "history": "^4.6.3",
     "moment": "^2.18.1",
+    "prop-types": "^15.5.10",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-redux": "^5.0.5",
     "react-router": "^4.1.1",
+    "react-router-dom": "^4.1.1",
+    "react-router-redux": "^4.0.8",
     "redux": "^3.7.1",
     "weui": "^1.1.2"
   },
@@ -35,6 +39,7 @@
     "babel-preset-react": "^6.24.1",
     "css-loader": "^0.28.4",
     "file-loader": "^0.11.2",
+    "redux-devtools": "^3.4.0",
     "style-loader": "^0.18.2",
     "uglify-js": "^3.0.20",
     "uglifyjs-webpack-plugin": "^0.4.6",

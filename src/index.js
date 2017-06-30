@@ -2,42 +2,27 @@
  * Created by I326950 on 6/28/2017.
  */
 import React from 'react';
-import {render} from 'react-dom';
-// import { createStore } from 'redux';
-// import { Provider } from 'react-redux';
-import App from './App';
-// import reducers from './reducers';
-import WeUI from 'weui';
+import { render } from 'react-dom';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
+// import { createBrowserHistory } from 'history';
+// import { syncHistoryWithStore } from 'react-router-redux';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
+import reducers from './reducers';
+import routes from './routes';
+import 'weui';
+import Toast from './components/Toast';
 
-const rootElement = document.getElementById('root');
-// const store = createStore(reducers);
-const tabbars = [
-    {
-        name: "Category",
-        path: "/categories"
-    },
-    {
-        name: "Component",
-        path: "/components"
-    },
-    {
-        name: "Customer",
-        path: "/customers"
-    },
-    {
-        name: "Me",
-        path: "/me"
-    }
-];
+const store = createStore(reducers);
+// const history = syncHistoryWithStore(createBrowserHistory(), store);
+// console.log(store.getState());
 
 render(
-    <App items={tabbars} />,
-    rootElement
+    <Provider store={store}>
+        <div>
+            <Toast show={store.getState().isLoading} />
+            <Router history={history} children={routes} />
+        </div>
+    </Provider>,
+    document.getElementById('root')
 );
-
-// render(
-//     <Provider store={store}>
-//         <App />
-//     </Provider>,
-//     rootElement
-// );
