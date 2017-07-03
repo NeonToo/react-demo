@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { render } from 'react-dom';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 // import { createBrowserHistory } from 'history';
 // import { syncHistoryWithStore } from 'react-router-redux';
 import { createStore } from 'redux';
@@ -14,13 +14,14 @@ import 'weui';
 import Toast from './components/Toast';
 
 const store = createStore(reducers);
+const state = store.getState();
 // const history = syncHistoryWithStore(createBrowserHistory(), store);
 // console.log(store.getState());
 
 render(
     <Provider store={store}>
         <div>
-            <Toast show={store.getState().isLoading} />
+            <Toast show={state.isLoading}>加载中...</Toast>
             <Router history={history} children={routes} />
         </div>
     </Provider>,
