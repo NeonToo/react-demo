@@ -12,16 +12,19 @@ import reducers from './reducers';
 import routes from './routes';
 import 'weui';
 import Toast from './components/Toast';
+import Dialog from './components/Dialog';
+import { PopupComponents } from './actions';
 
 const store = createStore(reducers);
 const state = store.getState();
+const popup = state.popup;
+const PopupComponent = popup.component;
 // const history = syncHistoryWithStore(createBrowserHistory(), store);
-// console.log(store.getState());
 
 render(
     <Provider store={store}>
         <div>
-            <Toast show={state.isLoading}>加载中...</Toast>
+            <PopupComponent show={popup.show}>加载中...</PopupComponent>
             <Router history={history} children={routes} />
         </div>
     </Provider>,

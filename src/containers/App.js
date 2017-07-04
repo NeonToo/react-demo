@@ -2,8 +2,6 @@
  * Created by I326950 on 6/28/2017.
  */
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { addTodo, completeTodo, setVisibilityFilter, VisibilityFilters } from '../actions/index';
 
 class TabContainer extends Component {
     constructor(props) {
@@ -31,7 +29,7 @@ class TabContainer extends Component {
         ];
 
         return (
-            <div className="weui-tab">
+            <div className="weui-tab" style={{height: '100vh'}}>
                 <div className="weui-tab__panel">
                 </div>
                 <div className="weui-tabbar">

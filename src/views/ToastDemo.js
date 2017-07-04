@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { connect } from 'react-redux'
-import { changeLoadingStatus } from './../actions';
+import { setPopup } from './../actions';
 import Toast from '../components/Toast';
 
 class ToastDemo extends React.Component{
@@ -11,13 +11,18 @@ class ToastDemo extends React.Component{
         super(props);
     }
 
-    render() {
-        const { dispatch, loading } = this.props;
+    toggleToast() {
+        const { changePopup, popup } = this.props;
 
+        changePopup(Object.assign({}, popup, {show: !popup.show}));
+        // dispatch(setPopup(Object.assign({}, popup, {show: !popup.show})));
+    }
+
+    render() {
         return (
             <div>
-                <button type="button" onClick={() => dispatch(changeLoadingStatus(!loading))}>Click Me</button>
-                <Toast show={loading}>加载中...</Toast>
+                {/*<button type="button" onClick={() => this.toggleToast()}>Click Me</button>*/}
+                <Toast show={true} hasMask={false}>加载中...</Toast>
             </div>
         );
     }
@@ -25,8 +30,16 @@ class ToastDemo extends React.Component{
 
 const mapStateToProps = state => {
     return {
-        loading: state.isLoading
+        popup: state.popup
     };
 };
 
-export default connect(mapStateToProps)(ToastDemo);
+const mapDispatchToProps = dispatch => {
+    return {
+        changePopup(newPopup) {
+            dispatch(setPopup(newPopup));
+        }
+    }
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ToastDemo);
