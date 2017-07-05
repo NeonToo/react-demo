@@ -3,10 +3,12 @@
  */
 import { combineReducers } from 'redux';
 import popup from './popup';
+import toast from './toast';
 import dialog from './dialog';
 
 const reducers = combineReducers({
     popup,
+    toast,
     dialog
 });
 
