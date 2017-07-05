@@ -11,11 +11,15 @@ import { Provider } from 'react-redux';
 import reducers from './reducers';
 import routes from './routes';
 import 'weui';
-import Toast from './components/Toast';
-import Dialog from './components/Dialog';
-import { PopupComponents } from './actions';
+import { setPopup, setToast, setDialog } from './actions';
 
 const store = createStore(reducers);
+// const dispatch = store.dispatch;
+//
+// dispatch(setDialog({
+//     title: 'Set Dialog Test',
+//     buttons: []
+// }));
 const state = store.getState();
 const popup = state.popup;
 const PopupComponent = popup.component;

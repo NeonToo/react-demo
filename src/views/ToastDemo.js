@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { connect } from 'react-redux'
-import { setPopup } from './../actions';
+import { isShowing } from './../actions';
 import Toast from '../components/Toast';
 
 class ToastDemo extends React.Component{
@@ -12,17 +12,17 @@ class ToastDemo extends React.Component{
     }
 
     toggleToast() {
-        const { changePopup, popup } = this.props;
+        const { changePopup, isShowing } = this.props;
 
-        changePopup(Object.assign({}, popup, {show: !popup.show}));
+        changePopup(!isShowing);
         // dispatch(setPopup(Object.assign({}, popup, {show: !popup.show})));
     }
 
     render() {
         return (
             <div>
-                {/*<button type="button" onClick={() => this.toggleToast()}>Click Me</button>*/}
-                <Toast show={true} hasMask={false}>加载中...</Toast>
+                <button type="button" onClick={() => this.toggleToast()}>Click Me</button>
+                <Toast show={this.props.isShowing} hasMask={false}>加载中...</Toast>
             </div>
         );
     }
@@ -30,14 +30,14 @@ class ToastDemo extends React.Component{
 
 const mapStateToProps = state => {
     return {
-        popup: state.popup
+        isShowing: state.popup.show
     };
 };
 
 const mapDispatchToProps = dispatch => {
     return {
-        changePopup(newPopup) {
-            dispatch(setPopup(newPopup));
+        changePopup(bShow) {
+            dispatch(isShowing(bShow));
         }
     }
 };
