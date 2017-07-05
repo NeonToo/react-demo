@@ -17,7 +17,7 @@ class Toast extends React.Component {
             show && <div className={`toast ${classes}`} {...others}>
                 {hasMask && <Mask transparent={true} />}
                 <div className="weui-toast">
-                    <i className={`weui-icon_toast ${icon}`}></i>
+                    <i className={`weui-icon_toast ${icon}`} />
                     <p className="weui-toast__content">{children}</p>
                 </div>
             </div>
