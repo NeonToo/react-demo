@@ -13,9 +13,10 @@ const pullToRefreshStyle = {
     fontSize: '14px',
     textAlign: 'center'
 };
+
 const loadMoreStyle = {
-    margin: '0 auto',
-    height: '22px'
+    margin: `0 auto`,
+    // height: `22px`
 };
 
 class ScrollPage extends Component {
@@ -26,53 +27,67 @@ class ScrollPage extends Component {
             refreshing: false,
             pullState: PullState.INIT,
             pullOffset: 0,
-            pullOffsetToRelease: 15,
-            maxPullOffset: 30,
+            pullOffsetToRelease: 35,
+            maxPullOffset: 50,
             startTouchY: 0,
-            startTouchScrollTop: 0
+            startTouchScrollTop: 0,
+            pullAreaHeight: 0,
+            pullAreaContent: '下拉刷新'
         };
         this._refreshDone = this._refreshDone.bind(this);
     }
 
+    componentDidMount() {
+        console.log('componentWillMount');
+        this.setState({
+            pullAreaHeight: this.pullArea.clientHeight
+        });
+    }
+
     _onTouchStart(oEvent) {
+        console.log('touch start');
         const {refreshInitialized, refreshing} = this.state;
+        const contentArea = this.contentArea;
 
         if (refreshing) {
             this._cancelRefresh();
         }
 
-        const that = this;
-        const contentDiv = this.contentDiv;
-
         this.setState({
             startTouchY: oEvent.targetTouches[0].pageY,
-            startTouchScrollTop: contentDiv.scrollTop
+            startTouchScrollTop: contentArea.scrollTop
         });
 
-        if (!refreshInitialized) {
-            this.setState({
-                refreshInitialized: true
-            });
-            contentDiv.addEventListener("touchmove", throttle(that._onTouchMove, 50).bind(this)); // note the 'bind'
-            contentDiv.addEventListener("touchend", this._onTouchEnd.bind(this));
+        if (contentArea.scrollTop === 0) {
+            if (!refreshInitialized) {
+                this.setState({
+                    refreshInitialized: true
+                });
+                contentArea.addEventListener("touchend", this._onTouchEnd.bind(this));
+            }
+            contentArea.addEventListener("touchmove", this._handleTouchMove.bind(this)); // note the 'bind'
         }
+    }
+
+    _handleTouchMove(oEvent) {
+        const that = this;
+
+        return throttle(that._onTouchMove, 100).bind(that)(oEvent);
     }
 
     _onTouchMove(oEvent) {
         oEvent.preventDefault();
+        console.log('touch move');
         const that = this;
         const {pullOffsetToRelease, maxPullOffset, startTouchY, startTouchScrollTop} = this.state;
         const diff = oEvent.targetTouches[0].pageY - startTouchY - startTouchScrollTop;
 
         if (diff > 0) {
-            window.requestAnimationFrame(function () {
-                that.setState({
-                    pullState: PullState.IN_PULL
-                });
-
-                if (diff >= pullOffsetToRelease) {
+           window.requestAnimationFrame(function () {
+                if (diff > pullOffsetToRelease) {
                     that.setState({
-                        pullState: PullState.RELEASE_NEED
+                        pullState: PullState.RELEASE_NEED,
+                        pullAreaContent: '释放刷新'
                     });
                 }
                 that.setState({
@@ -83,6 +98,7 @@ class ScrollPage extends Component {
     }
 
     _onTouchEnd(oEvent) {
+        console.log('touch end');
         const {pullState, pullOffset} = this.state;
 
         if (pullOffset > 0) {
@@ -91,6 +107,7 @@ class ScrollPage extends Component {
             } else {
                 this._refresh();
             }
+            this.contentArea.removeEventListener("touchmove", this._handleTouchMove);
         }
     }
 
@@ -101,10 +118,17 @@ class ScrollPage extends Component {
 
     _refresh() {
         const {pullToRefresh} = this.props;
+        const loadingContent = (
+            <div>
+            <i className="weui-loading"/>
+            <span className="weui-loadmore__tips">正在刷新</span>
+            </div>
+        );
 
         this.setState({
             refreshing: true,
-            pullState: PullState.RELEASED
+            pullState: PullState.RELEASED,
+            pullAreaContent: loadingContent
         });
         pullToRefresh(this._refreshDone);
     }
@@ -113,6 +137,7 @@ class ScrollPage extends Component {
         this.setState({
             refreshing: false,
             pullState: PullState.INIT,
+            pullAreaContent: '下拉刷新',
             pullOffset: 0,
             startTouchY: 0,
             startTouchScrollTop: 0
@@ -124,29 +149,29 @@ class ScrollPage extends Component {
         this.setState({
             refreshing: false,
             pullState: PullState.INIT,
+            pullAreaContent: '下拉刷新',
             pullOffset: 0
         });
     }
 
     render() {
+        console.log('render');
         const {enablePullToRefresh, enableInfiniteLoading, pullToRefresh, children, ...others} = this.props;
-        const {pullState, pullOffset} = this.state;
+        const {pullOffset, pullAreaHeight, pullAreaContent} = this.state;
+        const pullToRefreshStyle = {...pullToRefreshStyle, marginTop: `-${pullAreaHeight}px`};
 
         return (
             <div className="scroll-container" {...others} style={{transform: `translateY(${pullOffset}px)`}}>
-                { enablePullToRefresh && <div className="pull-to-refresh" style={pullToRefreshStyle}>
-                    { pullState === PullState.IN_PULL && pullOffset > 0 && <div className="down">下拉刷新</div>}
-                    { pullState === PullState.RELEASE_NEED && <div className="up">释放刷新</div>}
-                    { pullState === PullState.RELEASED && <div className="weui-loadmore" style={loadMoreStyle}>
-                        <i className="weui-loading"/>
-                        <span className="weui-loadmore__tips">正在刷新</span>
-                    </div>}
+                { enablePullToRefresh && <div ref={(pullArea) => {
+                    this.pullArea = pullArea
+                }} className="pull-to-refresh" style={pullToRefreshStyle}>
+                    <div className="weui-loadmore" style={loadMoreStyle}>{pullAreaContent}</div>
                 </div>}
                 <div ref={(content) => {
-                    this.contentDiv = content;
+                    this.contentArea = content;
                 }} className="scroll-content" style={{maxHeight: '500px', overflowY: 'scroll'}}
                      onTouchStart={enablePullToRefresh ? (oEvent) => this._onTouchStart(oEvent) : undefined}
-                     onScroll={enableInfiniteLoading ? (oEvent) => throttle(this._onScroll, 50)() : undefined}>
+                     onScroll={enableInfiniteLoading ? (oEvent) => throttle(this._onScroll, 100)(oEvent) : undefined}>
                     {children}
                 </div>
                 { enableInfiniteLoading && <div className="weui-loadmore">
