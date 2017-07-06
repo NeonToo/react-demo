@@ -27,8 +27,8 @@ class ScrollPage extends Component {
             refreshing: false,
             pullState: PullState.INIT,
             pullOffset: 0,
-            pullOffsetToRelease: 35,
-            maxPullOffset: 50,
+            pullOffsetToRelease: 50,
+            maxPullOffset: 80,
             startTouchY: 0,
             startTouchScrollTop: 0,
             pullAreaHeight: 0,
@@ -79,12 +79,12 @@ class ScrollPage extends Component {
         oEvent.preventDefault();
         console.log('touch move');
         const that = this;
-        const {pullOffsetToRelease, maxPullOffset, startTouchY, startTouchScrollTop} = this.state;
+        const {pullState, pullOffsetToRelease, maxPullOffset, startTouchY, startTouchScrollTop} = this.state;
         const diff = oEvent.targetTouches[0].pageY - startTouchY - startTouchScrollTop;
 
         if (diff > 0) {
            window.requestAnimationFrame(function () {
-                if (diff > pullOffsetToRelease) {
+                if (diff > pullOffsetToRelease && pullState < PullState.RELEASE_NEED) { // pullState judgement or will cause load done return to here
                     that.setState({
                         pullState: PullState.RELEASE_NEED,
                         pullAreaContent: '释放刷新'
@@ -107,7 +107,7 @@ class ScrollPage extends Component {
             } else {
                 this._refresh();
             }
-            this.contentArea.removeEventListener("touchmove", this._handleTouchMove);
+            this.contentArea.removeEventListener("touchmove", this._handleTouchMove); // remove touchmove handler
         }
     }
 
