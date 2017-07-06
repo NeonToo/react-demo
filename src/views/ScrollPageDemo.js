@@ -7,8 +7,10 @@ class ScrollPageDemo extends Component {
     }
 
     handleRefresh(refreshDone) {
-        console.log('Refreshing');
-        refreshDone();
+        setTimeout(function() {
+            console.log('Refreshing');
+            refreshDone();
+        }, 2000);
     }
 
     render() {
