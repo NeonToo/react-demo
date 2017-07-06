@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {throttle} from 'lodash';
+import { throttle } from 'lodash';
 
 const PullState = {
     INIT: 0,
@@ -35,14 +35,17 @@ class ScrollPage extends Component {
     }
 
     _onTouchMove(oEvent) {
+        oEvent.preventDefault();
         const that = this;
         const {startTouchY, startTouchScrollTop} = this.state;
         const diff = oEvent.targetTouches[0].pageY - startTouchY - startTouchScrollTop;
 
         if (diff > 10) {
-            that.setState({
-                pullState: PullState.RELEASE_NEED,
-                pullOffset: diff > 50 ? 50 : diff
+            window.requestAnimationFrame(function() {
+                that.setState({
+                    pullState: PullState.RELEASE_NEED,
+                    pullOffset: diff > 50 ? 50 : diff
+                });
             });
         }
     }
@@ -56,6 +59,7 @@ class ScrollPage extends Component {
     }
 
     _onScroll(oEvent) {
+        oEvent.preventDefault();
         console.log('scroll');
     }
 
@@ -77,8 +81,7 @@ class ScrollPage extends Component {
     }
 
     render() {
-        console.log('render');
-        const {enablePullToRefresh, enableInfiniteLoading, children, ...others} = this.props;
+        const {enablePullToRefresh, enableInfiniteLoading, pullToRefresh, children, ...others} = this.props;
         const { pullState, pullOffset } = this.state;
         const containerStyle = {
             transform: `translateY(${pullOffset}px)`
