@@ -13,11 +13,20 @@ class ScrollPageDemo extends Component {
         }, 2000);
     }
 
+    handleLoad(loadDone) {
+        setTimeout(function() {
+            console.log('infinite load');
+            // console.log(this);
+            loadDone();
+            // console.log(this);
+        }, 2000);
+    }
+
     render() {
         const {children, ...others} = this.props;
 
         return (
-            <ScrollPage enablePullToRefresh={true} enableInfiniteLoading={true} pullToRefresh={this.handleRefresh}>
+            <ScrollPage enablePullToRefresh={true} enableInfiniteLoading={true} pullToRefresh={this.handleRefresh} infiniteLoad={this.handleLoad}>
                 <div style={{height: '1000px'}}>
                     <h4>Content</h4>
                 </div>
