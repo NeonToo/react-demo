@@ -120,6 +120,7 @@ class ScrollPage extends PureComponent {
     }
 
     _onTouchMove(oEvent) {
+        oEvent.preventDefault();
         console.log('touch move');
         const that = this;
 
@@ -127,7 +128,6 @@ class ScrollPage extends PureComponent {
     }
 
     _handleTouchMove(oEvent) {
-        oEvent.preventDefault();
         console.log('handle touch move');
         const that = this;
         const {properties, pullState, pullOffsetToRelease, maxPullOffset} = this.state;
@@ -163,6 +163,7 @@ class ScrollPage extends PureComponent {
     }
 
     _onScroll(oEvent) {
+        oEvent.preventDefault();
         console.log('scroll');
         const that = this;
         const {properties} = this.state;
@@ -178,7 +179,6 @@ class ScrollPage extends PureComponent {
     }
 
     _handleScroll(oEvent) {
-        oEvent.preventDefault();
         console.log('handle scroll');
         const that = this;
         const contentArea = this.contentArea;

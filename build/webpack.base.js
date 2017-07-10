@@ -8,7 +8,7 @@ const root = path.resolve(__dirname, '../');
 module.exports = {
     entry: {
         'main': path.resolve(root, 'src/index.js'),
-        'vendor': ['moment']
+        'vendor': ['moment', 'react']
     },
     output: {
         path: path.resolve(root, 'dist'),
