@@ -48,8 +48,7 @@ class ScrollPage extends PureComponent {
                 refreshing: false,
                 touchY: 0,
                 scrollTop: 0,
-                scrollDirection: ScrollDirection.DOWN,
-                loading: false
+                scrollDirection: ScrollDirection.DOWN
             },
             pullState: PullState.INIT,
             pullOffset: 0,
@@ -59,6 +58,7 @@ class ScrollPage extends PureComponent {
             pullAreaContent: '下拉刷新',
             infiniteStyle: infiniteStyle,
             bottomOffsetToLoad: 30,
+            loading: false,
             loadTips: '正在加载'
         };
         this._infiniteLoadDone = this._infiniteLoadDone.bind(this);
@@ -71,6 +71,16 @@ class ScrollPage extends PureComponent {
 
     componentDidMount() {
         console.log('componentDidMount');
+        const {enablePullToRefresh, enableInfiniteLoading} = this.props;
+        const contentArea = this.contentArea;
+
+        if (enablePullToRefresh) {
+            contentArea.addEventListener('touchstart', this._onTouchStart.bind(this));
+        }
+
+        if (enableInfiniteLoading) {
+            contentArea.addEventListener('scroll', this._onScroll.bind(this));
+        }
         // pullToRefreshStyle.marginTo = `-${this.pullArea.clientHeight}px`;
         // const {pullToRefreshStyle} = this.state;
         // this.setState({
@@ -157,8 +167,13 @@ class ScrollPage extends PureComponent {
         const that = this;
         const {properties} = this.state;
 
-        if(!properties.loading) { // OPTIMIZATION: avoid handling scroll again even reach to the bottom
+        if(!this.state.loading) { // OPTIMIZATION: avoid handling scroll again even reach to the bottom
             return throttle(that._handleScroll, 100).bind(that)(oEvent);
+        } else {
+            properties.scrollTop = this.contentArea.scrollTop; // mutate value
+            this.setState({
+                properties: properties
+            });
         }
     }
 
@@ -170,31 +185,23 @@ class ScrollPage extends PureComponent {
         const scrollHeight = contentArea.scrollHeight;
         const clientHeight = contentArea.clientHeight;
         const currentScrollTop = contentArea.scrollTop;
-        const {properties, bottomOffsetToLoad, loading} = this.state;
+        const {properties, bottomOffsetToLoad} = this.state;
 
-        console.log(properties.scrollDirection);
-
-        if(currentScrollTop > properties.scrollTop) { // scroll from top to bottom
+        if (currentScrollTop > properties.scrollTop) { // scroll from top to bottom
             const bottomOffset = scrollHeight - clientHeight - currentScrollTop;
 
-            properties.scrollTop = currentScrollTop; // mutate value
-            properties.scrollDirection = ScrollDirection.DOWN;
-            this.setState({
-                properties: properties
-            });
-
-            if(bottomOffset > 0 && bottomOffset <= bottomOffsetToLoad && !properties.loading) {
+            if (bottomOffset > 0 && bottomOffset <= bottomOffsetToLoad) {
                 console.warn('start infinite load');
-                this.contentArea.removeEventListener('scroll', this._onScroll);
+                // contentArea.removeEventListener('scroll', this._onScroll);
                 window.requestAnimationFrame(that._infiniteLoad.bind(that));
             }
-        } else {
-            properties.scrollTop = currentScrollTop; // mutate value
-            properties.scrollDirection = ScrollDirection.UP;
-            this.setState({
-                properties: properties
-            });
         }
+
+        properties.scrollTop = currentScrollTop; // mutate value
+        properties.scrollDirection = ScrollDirection.DOWN;
+        this.setState({
+            properties: properties
+        });
     }
 
     _refresh() {
@@ -237,33 +244,25 @@ class ScrollPage extends PureComponent {
 
     _infiniteLoad() {
         const {infiniteLoad} = this.props;
-        const {properties} = this.state;
-
-        properties.loading = true;
         this.setState({
-            properties: properties,
+            loading: true,
             loadTips: '正在加载'
         });
         infiniteLoad(this._infiniteLoadDone);
     }
 
-    _infiniteLoadDone(args) {
+    _infiniteLoadDone() {
         console.log('infinite load done');
-        const {properties} = this.state;
-        properties.loading = true;
         this.setState({
-            properties: properties,
+            loading: false,
             loadTips: '加载完成'
         });
-        // console.log(this._onScroll);
-        // console.log(this.contentArea);
-        // this.contentArea.addEventListener('scroll', this._onScroll);
     }
 
     render() {
         console.log('render');
         const {enablePullToRefresh, enableInfiniteLoading, pullToRefresh, infiniteLoad, children, ...others} = this.props;
-        const {pullOffset, pullToRefreshStyle, pullAreaContent, infiniteStyle, loading, loadTips} = this.state;
+        const {properties, pullOffset, pullToRefreshStyle, pullAreaContent, infiniteStyle, loading, loadTips} = this.state;
         const containerStyle = {...containerStyle, transform: `translateY(${pullOffset}px)`};
         // const infiniteStyle = {...infiniteStyle, display: loading ? 'block' : 'none'};
 
@@ -276,9 +275,7 @@ class ScrollPage extends PureComponent {
                 </div>}
                 <div ref={(content) => {
                     this.contentArea = content;
-                }} className="scroll-content" style={contentStyle}
-                     onTouchStart={enablePullToRefresh ? (oEvent) => this._onTouchStart(oEvent) : undefined}
-                     onScroll={enableInfiniteLoading ? (oEvent) => this._onScroll(oEvent) : undefined}>
+                }} className="scroll-content" style={contentStyle}>
                     {children}
                     { enableInfiniteLoading && <div className="weui-loadmore" style={infiniteStyle}>
                         {loading && <i className="weui-loading"/>}
@@ -290,18 +287,22 @@ class ScrollPage extends PureComponent {
     }
 }
 
-ScrollPage.defaultProps = {
+ScrollPage
+    .defaultProps = {
     enablePullToRefresh: false,
     pullToRefresh: undefined,
     enableInfiniteLoading: false,
     // offsetToTriggerLoading: 50
 };
 
-ScrollPage.propTypes = {
+ScrollPage
+    .propTypes = {
     enablePullToRefresh: PropTypes.bool,
     pullToRefresh: PropTypes.func,
     enableInfiniteLoading: PropTypes.bool,
     // offsetToTriggerLoading: PropTypes.number
 };
 
-export default ScrollPage;
+export
+default
+ScrollPage;
