@@ -9,6 +9,11 @@ const PullState = {
     RELEASED: 3
 };
 
+const ScrollDirection = {
+    UP: 'up',
+    DOWN: 'down'
+};
+
 const containerStyle = {
     height: '100vh',
     transform: `translateY(0)`
@@ -39,21 +44,21 @@ class ScrollPage extends PureComponent {
         super(props);
         this.state = {
             properties: {
-                scrollTop: 0
+                refreshInitialized: false,
+                refreshing: false,
+                touchY: 0,
+                scrollTop: 0,
+                scrollDirection: ScrollDirection.DOWN,
+                loading: false
             },
-            refreshInitialized: false,
-            refreshing: false,
             pullState: PullState.INIT,
             pullOffset: 0,
             pullOffsetToRelease: 50,
             maxPullOffset: 80,
-            touchY: 0,
-            scrollTop: -1,
             pullToRefreshStyle: pullToRefreshStyle,
             pullAreaContent: '下拉刷新',
             infiniteStyle: infiniteStyle,
             bottomOffsetToLoad: 30,
-            loading: false,
             loadTips: '正在加载'
         };
         this._infiniteLoadDone = this._infiniteLoadDone.bind(this);
@@ -79,22 +84,24 @@ class ScrollPage extends PureComponent {
 
     _onTouchStart(oEvent) {
         console.log('touch start');
-        const {refreshInitialized, refreshing} = this.state;
+        const {properties} = this.state;
         const contentArea = this.contentArea;
 
-        if (refreshing) {
+        if (properties.refreshing) {
             this._cancelRefresh();
         }
 
+        properties.touchY = oEvent.targetTouches[0].pageY;
+        properties.scrollTop = contentArea.scrollTop;
         this.setState({
-            touchY: oEvent.targetTouches[0].pageY,
-            scrollTop: contentArea.scrollTop
+            properties: properties
         });
 
         if (contentArea.scrollTop === 0) {
-            if (!refreshInitialized) {
+            if (!properties.refreshInitialized) {
+                properties.refreshInitialized = true;
                 this.setState({
-                    refreshInitialized: true
+                    properties: properties
                 });
                 contentArea.addEventListener("touchend", this._onTouchEnd.bind(this));
             }
@@ -103,6 +110,7 @@ class ScrollPage extends PureComponent {
     }
 
     _onTouchMove(oEvent) {
+        console.log('touch move');
         const that = this;
 
         return throttle(that._handleTouchMove, 100).bind(that)(oEvent);
@@ -110,10 +118,10 @@ class ScrollPage extends PureComponent {
 
     _handleTouchMove(oEvent) {
         oEvent.preventDefault();
-        console.log('touch move');
+        console.log('handle touch move');
         const that = this;
-        const {pullState, pullOffsetToRelease, maxPullOffset, touchY, scrollTop} = this.state;
-        const diff = oEvent.targetTouches[0].pageY - touchY - scrollTop;
+        const {properties, pullState, pullOffsetToRelease, maxPullOffset} = this.state;
+        const diff = oEvent.targetTouches[0].pageY - properties.touchY - properties.scrollTop;
 
         if (diff > 0) {
             window.requestAnimationFrame(function () {
@@ -145,18 +153,18 @@ class ScrollPage extends PureComponent {
     }
 
     _onScroll(oEvent) {
+        console.log('scroll');
         const that = this;
+        const {properties} = this.state;
 
-        // this._onScroll = function() {
-        //     throttle(that._handleScroll.bind(that), 750).bind(that)(oEvent);
-        // }
-        // return throttle(that._handleTouchMove, 100).bind(that)(oEvent);
-        return throttle(that._handleScroll, 100).bind(that)(oEvent);
+        if(!properties.loading) { // OPTIMIZATION: avoid handling scroll again even reach to the bottom
+            return throttle(that._handleScroll, 100).bind(that)(oEvent);
+        }
     }
 
     _handleScroll(oEvent) {
         oEvent.preventDefault();
-        console.log('scroll');
+        console.log('handle scroll');
         const that = this;
         const contentArea = this.contentArea;
         const scrollHeight = contentArea.scrollHeight;
@@ -164,20 +172,29 @@ class ScrollPage extends PureComponent {
         const currentScrollTop = contentArea.scrollTop;
         const {properties, bottomOffsetToLoad, loading} = this.state;
 
+        console.log(properties.scrollDirection);
+
         if(currentScrollTop > properties.scrollTop) { // scroll from top to bottom
             const bottomOffset = scrollHeight - clientHeight - currentScrollTop;
 
-            if(bottomOffset > 0 && bottomOffset <= bottomOffsetToLoad && !loading) {
+            properties.scrollTop = currentScrollTop; // mutate value
+            properties.scrollDirection = ScrollDirection.DOWN;
+            this.setState({
+                properties: properties
+            });
+
+            if(bottomOffset > 0 && bottomOffset <= bottomOffsetToLoad && !properties.loading) {
                 console.warn('start infinite load');
-                this.contentArea.removeEventListener('scroll', this._onScroll); // TODO: this does NOT work
+                this.contentArea.removeEventListener('scroll', this._onScroll);
                 window.requestAnimationFrame(that._infiniteLoad.bind(that));
             }
+        } else {
+            properties.scrollTop = currentScrollTop; // mutate value
+            properties.scrollDirection = ScrollDirection.UP;
+            this.setState({
+                properties: properties
+            });
         }
-
-        properties.scrollTop = currentScrollTop; // mutate value
-        this.setState({
-            properties: properties
-        })
     }
 
     _refresh() {
@@ -220,9 +237,11 @@ class ScrollPage extends PureComponent {
 
     _infiniteLoad() {
         const {infiniteLoad} = this.props;
+        const {properties} = this.state;
 
+        properties.loading = true;
         this.setState({
-            loading: true,
+            properties: properties,
             loadTips: '正在加载'
         });
         infiniteLoad(this._infiniteLoadDone);
@@ -230,8 +249,10 @@ class ScrollPage extends PureComponent {
 
     _infiniteLoadDone(args) {
         console.log('infinite load done');
+        const {properties} = this.state;
+        properties.loading = true;
         this.setState({
-            loading: false,
+            properties: properties,
             loadTips: '加载完成'
         });
         // console.log(this._onScroll);
