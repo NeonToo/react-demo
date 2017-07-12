@@ -2,6 +2,7 @@
  * Created by I326950 on 6/28/2017.
  */
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 
 class TabContainer extends Component {
     constructor(props) {
@@ -11,20 +12,20 @@ class TabContainer extends Component {
     render() {
         const items = [
             {
-                name: "Category",
-                path: "/categories"
+                name: "Button",
+                path: "/button"
             },
             {
-                name: "Component",
-                path: "/components"
+                name: "Toast",
+                path: "/toast"
             },
             {
-                name: "Customer",
-                path: "/customers"
+                name: "Dialog",
+                path: "/dialog"
             },
             {
-                name: "Me",
-                path: "/me"
+                name: "Scroll Page",
+                path: "/scrollpage"
             }
         ];
 
@@ -34,9 +35,9 @@ class TabContainer extends Component {
                 </div>
                 <div className="weui-tabbar">
                     {items.map((item, index) =>
-                        <a href="javascript:;" className="weui-tabbar__item weui-bar__item_on" key={index}>
+                        <Link to={`${item.path}`} className="weui-tabbar__item weui-bar__item_on" key={index}>
                             <p className="weui-tabbar__label">{item.name}</p>
-                        </a>
+                        </Link>
                     )}
                 </div>
             </div>
